@@ -28,8 +28,8 @@
             <string>/// init game
 // obj_game variables
 _active = true;
-_paused = true;
-_3d = false;
+_paused = false;
+_3d = true;
 </string>
           </argument>
         </arguments>

@@ -11,6 +11,9 @@
     <sprites name="env">
       <sprite>sprites\spr_env_terrain</sprite>
     </sprites>
+    <sprites name="tex">
+      <sprite>sprites\spr_tex_default</sprite>
+    </sprites>
   </sprites>
   <backgrounds name="background"/>
   <paths name="paths"/>
@@ -21,10 +24,13 @@
     <object>objects\obj_camera</object>
     <object>objects\obj_game</object>
     <object>objects\obj_player</object>
+    <objects name="env">
+      <object>objects\obj_env_terrain</object>
+    </objects>
   </objects>
   <rooms name="rooms">
-    <room>rooms\rm_menu</room>
     <room>rooms\rm_sandbox</room>
+    <room>rooms\rm_menu</room>
   </rooms>
   <help>
     <rtf>help.rtf</rtf>
