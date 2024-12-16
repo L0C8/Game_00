@@ -5,9 +5,67 @@
   </Configs>
   <NewExtensions/>
   <sounds name="sound"/>
-  <sprites name="sprites"/>
+  <sprites name="sprites">
+    <sprite>sprites\spr_entity</sprite>
+    <sprite>sprites\spr_camera</sprite>
+    <sprites name="env">
+      <sprite>sprites\spr_env_terrain</sprite>
+      <sprite>sprites\spr_env_obs</sprite>
+      <sprites name="en_props">
+        <sprite>sprites\spr_prop_00</sprite>
+      </sprites>
+    </sprites>
+    <sprites name="tex">
+      <sprite>sprites\spr_tex_default</sprite>
+    </sprites>
+    <sprite>sprites\spr_tank</sprite>
+    <sprite>sprites\sprite7</sprite>
+  </sprites>
   <backgrounds name="background"/>
   <paths name="paths"/>
+  <scripts name="scripts">
+    <script>scripts\scr_game.gml</script>
+  </scripts>
+  <fonts name="fonts">
+    <font>fonts\fnt_debug</font>
+  </fonts>
+  <objects name="objects">
+    <objects name="env">
+      <object>objects\obj_env_terrain</object>
+      <object>objects\obj_env_obs</object>
+      <objects name="env_buildings">
+        <object>objects\obj_building_00</object>
+      </objects>
+      <objects name="env_props">
+        <object>objects\obj_prop_00</object>
+        <objects name="env_prop_cars">
+          <object>objects\obj_car_00</object>
+        </objects>
+      </objects>
+    </objects>
+    <objects name="game">
+      <object>objects\obj_game</object>
+      <objects name="entities">
+        <objects name="tank">
+          <object>objects\obj_tank</object>
+          <object>objects\obj_player</object>
+        </objects>
+        <objects name="creeps">
+          <object>objects\obj_creep</object>
+        </objects>
+      </objects>
+    </objects>
+    <objects name="utils">
+      <object>objects\obj_camera</object>
+      <object>objects\obj_timer</object>
+      <object>objects\obj_time</object>
+      <object>objects\obj_debug</object>
+    </objects>
+  </objects>
+  <rooms name="rooms">
+    <room>rooms\rm_sandbox</room>
+    <room>rooms\rm_menu</room>
+  </rooms>
   <help>
     <rtf>help.rtf</rtf>
   </help>
