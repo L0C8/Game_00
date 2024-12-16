@@ -95,7 +95,7 @@ tex = sprite_get_texture(spr_tex_default,0);
           <argument>
             <kind>1</kind>
             <string>/// Render 3D
-draw_set_color(c_red);
+draw_set_color(c_green);
 d3d_draw_floor(x,y,0,x+w,y+h,0,tex,w/16,h/16);
 </string>
           </argument>
