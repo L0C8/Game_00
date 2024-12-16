@@ -19,16 +19,17 @@
       <sprite>sprites\spr_tex_default</sprite>
     </sprites>
     <sprite>sprites\spr_tank</sprite>
+    <sprite>sprites\sprite7</sprite>
   </sprites>
   <backgrounds name="background"/>
   <paths name="paths"/>
   <scripts name="scripts">
     <script>scripts\scr_game.gml</script>
   </scripts>
+  <fonts name="fonts">
+    <font>fonts\fnt_debug</font>
+  </fonts>
   <objects name="objects">
-    <object>objects\obj_camera</object>
-    <object>objects\obj_game</object>
-    <object>objects\obj_tank</object>
     <objects name="env">
       <object>objects\obj_env_terrain</object>
       <object>objects\obj_env_obs</object>
@@ -41,6 +42,24 @@
           <object>objects\obj_car_00</object>
         </objects>
       </objects>
+    </objects>
+    <objects name="game">
+      <object>objects\obj_game</object>
+      <objects name="entities">
+        <objects name="tank">
+          <object>objects\obj_tank</object>
+          <object>objects\obj_player</object>
+        </objects>
+        <objects name="creeps">
+          <object>objects\obj_creep</object>
+        </objects>
+      </objects>
+    </objects>
+    <objects name="utils">
+      <object>objects\obj_camera</object>
+      <object>objects\obj_timer</object>
+      <object>objects\obj_time</object>
+      <object>objects\obj_debug</object>
     </objects>
   </objects>
   <rooms name="rooms">
