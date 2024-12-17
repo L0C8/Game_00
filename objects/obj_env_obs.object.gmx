@@ -151,7 +151,7 @@ d3d_draw_wall(x+w,y,0,x+w,y+h,z,tex,h/16,z/16);
           <argument>
             <kind>1</kind>
             <string>/// Draw 2D
-draw_sprite_ext(spr_env_terrain,0,x,y,image_xscale,image_yscale,0,c_white,0.5);
+draw_sprite_ext(spr_env_terrain,0,x,y,image_xscale,image_yscale,0,c_white,1);
 </string>
           </argument>
         </arguments>

@@ -27,6 +27,8 @@
             <kind>1</kind>
             <string>/// init tank
 image_blend = c_yellow;
+_rot_hull = 0;
+_rot_turret = 0;
 </string>
           </argument>
         </arguments>
@@ -92,6 +94,9 @@ image_blend = c_yellow;
           <argument>
             <kind>1</kind>
             <string>/// Render 3d
+/// draw 2d
+draw_sprite_ext(spr_tank,0,x,y,1,1,_rot_hull,c_white,1);
+draw_sprite_ext(spr_tank,1,x,y,1,1,_rot_hull,c_white,1);
 </string>
           </argument>
         </arguments>
@@ -155,6 +160,8 @@ image_blend = c_yellow;
           <argument>
             <kind>1</kind>
             <string>/// draw 2d
+draw_sprite_ext(spr_tank,0,x,y,1,1,_rot_hull,c_white,1);
+draw_sprite_ext(spr_tank,1,x,y,1,1,_rot_hull,c_white,1);
 </string>
           </argument>
         </arguments>
