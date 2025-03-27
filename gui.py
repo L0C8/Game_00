@@ -18,6 +18,17 @@ class Gui:
             'rect': pygame.Rect(self.screen_width - 110, 10, 100, 30),
             'callback': self.on_inspect
         })
+        self.buttons.append({
+            'label': 'Move',
+            'rect': pygame.Rect(self.screen_width - 110, 50, 100, 30),
+            'callback': self.on_move
+        })
+        self.buttons.append({
+            'label': 'Cancel',
+            'rect': pygame.Rect(self.screen_width - 110, self.screen_height - 120, 100, 30),
+            'callback': self.on_cancel
+        })
+        self.inspecting = False
         self.inspecting = False
 
     def draw(self, surface):
@@ -46,6 +57,8 @@ class Gui:
 
     def on_inspect(self):
         self.inspecting = True
+        self.add_message("Inspect mode enabled!")
+        self.inspecting = True
         self.add_message("Inspect button clicked!")
 
     def inspect_click(self, pos):
@@ -66,6 +79,13 @@ class Gui:
                 self.add_message(f"Inspected: {obj.name}")
             else:
                 self.add_message("Nothing here.")
+
+    def on_move(self):
+        self.add_message("Move button clicked!")
+
+    def on_cancel(self):
+        self.inspecting = False
+        self.add_message("Inspect canceled.")
 
     def add_message(self, msg):
         self.messages.append(msg)
