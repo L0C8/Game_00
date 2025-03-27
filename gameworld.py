@@ -1,7 +1,7 @@
 # gameworld.py
 import pygame
 import random
-from game.objs import Object
+from game.objs import Object, Actor
 
 # Color palette
 BLACK   = (0, 0, 0)
@@ -43,64 +43,84 @@ class GameWorld:
         self.world_rows = 100
 
         self.grid = [[None for _ in range(self.world_cols)] for _ in range(self.world_rows)]
+        self.actors = []
 
-        rock_positions = set()
-        while len(rock_positions) < 155:
-            rx = random.randint(0, self.world_cols - 1)
-            ry = random.randint(0, self.world_rows - 1)
-            if (rx, ry) not in rock_positions:
-                rock_positions.add((rx, ry))
-                self.grid[ry][rx] = obs[1].index  # Rock ID
-
-        # Place player
+        # Place Player
         while True:
-            self.player_x = random.randint(0, self.world_cols - 1)
-            self.player_y = random.randint(0, self.world_rows - 1)
-            if self.grid[self.player_y][self.player_x] is None:
-                self.grid[self.player_y][self.player_x] = obs[0].index  # Player ID
+            x = random.randint(0, self.world_cols - 1)
+            y = random.randint(0, self.world_rows - 1)
+            if self.grid[y][x] is None:
+                player = Actor(x, y, "@", "Player", CYAN, 0, hp=20, att=3, str=2, int=2, dex=2, end=2, spd=3)
+                self.grid[y][x] = player
+                self.actors.append(player)
+                self.player = player
                 break
+
+        # Place Rocks
+        rock_count = 200
+        while rock_count > 0:
+            x = random.randint(0, self.world_cols - 1)
+            y = random.randint(0, self.world_rows - 1)
+            if self.grid[y][x] is None:
+                self.grid[y][x] = Object(x, y, "#", "Rock", GRAY, 1)
+                rock_count -= 1
+
+    def handle_turns(self):
+        # Sort actors by speed (randomize ties)
+        queue = sorted(self.actors, key=lambda a: (-a.spd, random.random()))
+        for actor in queue:
+            for _ in range(actor.end):
+                if actor == self.player:
+                    return  # Wait for input before continuing others
+                self.ai_move(actor)
+
+    def ai_move(self, actor):
+        dx, dy = random.choice([(0,1), (1,0), (0,-1), (-1,0)])
+        new_x = actor.x + dx
+        new_y = actor.y + dy
+        if 0 <= new_x < self.world_cols and 0 <= new_y < self.world_rows:
+            if self.grid[new_y][new_x] is None:
+                self.grid[actor.y][actor.x] = None
+                actor.move(dx, dy)
+                self.grid[actor.y][actor.x] = actor
+
+    def move_player(self, dx, dy):
+        new_x = self.player.x + dx
+        new_y = self.player.y + dy
+        if 0 <= new_x < self.world_cols and 0 <= new_y < self.world_rows:
+            if self.grid[new_y][new_x] is None:
+                self.grid[self.player.y][self.player.x] = None
+                self.player.move(dx, dy)
+                self.grid[self.player.y][self.player.x] = self.player
 
     def handle_input(self, key):
         dx, dy = 0, 0
-        if key == pygame.K_LEFT:
-            dx = -1
-        elif key == pygame.K_RIGHT:
-            dx = 1
-        elif key == pygame.K_UP:
-            dy = -1
-        elif key == pygame.K_DOWN:
-            dy = 1
-
-        new_x = self.player_x + dx
-        new_y = self.player_y + dy
-
-        if 0 <= new_x < self.world_cols and 0 <= new_y < self.world_rows:
-            if self.grid[new_y][new_x] is None:
-                self.grid[self.player_y][self.player_x] = None
-                self.player_x, self.player_y = new_x, new_y
-                self.grid[self.player_y][self.player_x] = obs[0].index
+        if key == pygame.K_LEFT: dx = -1
+        elif key == pygame.K_RIGHT: dx = 1
+        elif key == pygame.K_UP: dy = -1
+        elif key == pygame.K_DOWN: dy = 1
+        if dx != 0 or dy != 0:
+            self.move_player(dx, dy)
 
     def render(self, surface):
-        cam_x = max(0, min(self.player_x - self.view_cols // 2, self.world_cols - self.view_cols))
-        cam_y = max(0, min(self.player_y - self.view_rows // 2, self.world_rows - self.view_rows))
+        cam_x = max(0, min(self.player.x - self.view_cols // 2, self.world_cols - self.view_cols))
+        cam_y = max(0, min(self.player.y - self.view_rows // 2, self.world_rows - self.view_rows))
 
         mouse_name = ""
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
         for y in range(self.view_rows):
             for x in range(self.view_cols):
-                world_x = cam_x + x
-                world_y = cam_y + y
-                tile_id = self.grid[world_y][world_x]
-                if tile_id in obs:
-                    tile = obs[tile_id]
-                    text = self.font.render(tile.char, True, tile.color)
-                    screen_x = self.view_offset_x + x * self.tile_size
-                    screen_y = self.view_offset_y + y * self.tile_size
-                    surface.blit(text, (screen_x, screen_y))
-
-                    if screen_x <= mouse_x < screen_x + self.tile_size and screen_y <= mouse_y < screen_y + self.tile_size:
-                        mouse_name = tile.name
+                wx = cam_x + x
+                wy = cam_y + y
+                obj = self.grid[wy][wx]
+                if obj:
+                    obj.render(surface, self.font, self.tile_size,
+                               self.view_offset_x + x * self.tile_size,
+                               self.view_offset_y + y * self.tile_size)
+                    mx, my = self.view_offset_x + x * self.tile_size, self.view_offset_y + y * self.tile_size
+                    if mx <= mouse_x < mx + self.tile_size and my <= mouse_y < my + self.tile_size:
+                        mouse_name = obj.name
 
         outline_rect = pygame.Rect(
             self.view_offset_x - 1, 
