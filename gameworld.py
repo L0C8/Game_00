@@ -22,12 +22,6 @@ NAVY    = (0, 0, 128)
 TEAL    = (0, 128, 128)
 SILVER  = (192, 192, 192)
 
-# Game object registry
-obs = {
-    0: Object(0, 0, "@", "Player", CYAN, 0),
-    1: Object(0, 0, "#", "Rock", GRAY, 1),
-}
-
 class GameWorld:
     def __init__(self, width, height, tile_size, font, view_size=(256, 256), view_offset=(0, 0)):
         self.width = width
@@ -44,6 +38,9 @@ class GameWorld:
 
         self.grid = [[None for _ in range(self.world_cols)] for _ in range(self.world_rows)]
         self.actors = []
+        self.turn_queue = []
+        self.current_actor_index = 0
+        self.current_actor_moves = 0
 
         # Place Player
         while True:
@@ -57,7 +54,7 @@ class GameWorld:
                 break
 
         # Place Rocks
-        rock_count = 200
+        rock_count = 55
         while rock_count > 0:
             x = random.randint(0, self.world_cols - 1)
             y = random.randint(0, self.world_rows - 1)
@@ -65,14 +62,24 @@ class GameWorld:
                 self.grid[y][x] = Object(x, y, "#", "Rock", GRAY, 1)
                 rock_count -= 1
 
+        # Place Enemies
+        enemy_count = 25
+        while enemy_count > 0:
+            x = random.randint(0, self.world_cols - 1)
+            y = random.randint(0, self.world_rows - 1)
+            if self.grid[y][x] is None:
+                enemy = Actor(x, y, "&", "Enemy", RED, 2, hp=10, att=2, str=1, int=1, dex=1, end=1, spd=2)
+                self.grid[y][x] = enemy
+                self.actors.append(enemy)
+                enemy_count -= 1
+
+        self.handle_turns()  # <-- Initialize the turn queue at the end of setup
+
     def handle_turns(self):
-        # Sort actors by speed (randomize ties)
         queue = sorted(self.actors, key=lambda a: (-a.spd, random.random()))
-        for actor in queue:
-            for _ in range(actor.end):
-                if actor == self.player:
-                    return  # Wait for input before continuing others
-                self.ai_move(actor)
+        self.turn_queue = queue.copy()
+        self.current_actor_index = 0
+        self.current_actor_moves = 0
 
     def ai_move(self, actor):
         dx, dy = random.choice([(0,1), (1,0), (0,-1), (-1,0)])
@@ -85,13 +92,36 @@ class GameWorld:
                 self.grid[actor.y][actor.x] = actor
 
     def move_player(self, dx, dy):
-        new_x = self.player.x + dx
-        new_y = self.player.y + dy
+        if not self.turn_queue:
+            return  # Defensive guard
+
+        actor = self.turn_queue[self.current_actor_index]
+        if actor != self.player or self.current_actor_moves >= actor.end:
+            return
+
+        new_x = actor.x + dx
+        new_y = actor.y + dy
         if 0 <= new_x < self.world_cols and 0 <= new_y < self.world_rows:
             if self.grid[new_y][new_x] is None:
-                self.grid[self.player.y][self.player.x] = None
-                self.player.move(dx, dy)
-                self.grid[self.player.y][self.player.x] = self.player
+                self.grid[actor.y][actor.x] = None
+                actor.move(dx, dy)
+                self.grid[actor.y][actor.x] = actor
+                self.current_actor_moves += 1
+
+        if self.current_actor_moves >= actor.end:
+            self.current_actor_index += 1
+            self.process_turn_queue()
+            self.handle_turns()
+
+    def process_turn_queue(self):
+        while self.current_actor_index < len(self.turn_queue):
+            actor = self.turn_queue[self.current_actor_index]
+            self.current_actor_moves = 0
+            if actor == self.player:
+                return  # wait for player input
+            for _ in range(actor.end):
+                self.ai_move(actor)
+            self.current_actor_index += 1
 
     def handle_input(self, key):
         dx, dy = 0, 0
@@ -113,19 +143,21 @@ class GameWorld:
             for x in range(self.view_cols):
                 wx = cam_x + x
                 wy = cam_y + y
+                if wx >= self.world_cols or wy >= self.world_rows:
+                    continue
                 obj = self.grid[wy][wx]
-                if obj:
-                    obj.render(surface, self.font, self.tile_size,
-                               self.view_offset_x + x * self.tile_size,
-                               self.view_offset_y + y * self.tile_size)
-                    mx, my = self.view_offset_x + x * self.tile_size, self.view_offset_y + y * self.tile_size
-                    if mx <= mouse_x < mx + self.tile_size and my <= mouse_y < my + self.tile_size:
-                        mouse_name = obj.name
+                screen_x = self.view_offset_x + x * self.tile_size
+                screen_y = self.view_offset_y + y * self.tile_size
+                if (0 <= screen_x < self.width) and (0 <= screen_y < self.height):
+                    if obj:
+                        obj.render(surface, self.font, self.tile_size, screen_x, screen_y)
+                        if screen_x <= mouse_x < screen_x + self.tile_size and screen_y <= mouse_y < screen_y + self.tile_size:
+                            mouse_name = obj.name
 
         outline_rect = pygame.Rect(
-            self.view_offset_x - 1, 
-            self.view_offset_y - 1, 
-            self.view_width + 2, 
+            self.view_offset_x - 1,
+            self.view_offset_y - 1,
+            self.view_width + 2,
             self.view_height + 2
         )
         pygame.draw.rect(surface, WHITE, outline_rect, 1)
