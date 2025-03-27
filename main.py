@@ -1,3 +1,4 @@
+# main.py 
 import pygame
 from gameworld import GameWorld
 from gui import Gui
@@ -5,10 +6,13 @@ from gui import Gui
 pygame.init()
 screen = pygame.display.set_mode((640, 480))
 pygame.display.set_caption("Game_00")
-font = pygame.font.Font(None, 24)
-clock = pygame.time.Clock()
 
-world = GameWorld(640, 480, 16, font, view_size=(384, 384), view_offset=(32, 32))
+TILE_SIZE = 16
+FONT_PATH = "assets/ndsbios_memesbruh03.ttf"
+font = pygame.font.Font(FONT_PATH, TILE_SIZE)
+
+clock = pygame.time.Clock()
+world = GameWorld(640, 480, 16, font, view_size=(432, 256), view_offset=(32, 32))
 gui = Gui(font, screen.get_width(), screen.get_height())
 gui.world_ref = world
 
