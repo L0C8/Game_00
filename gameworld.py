@@ -1,6 +1,7 @@
 # gameworld.py
 import pygame
 import random
+from game.objs import Object
 
 # Color palette
 BLACK   = (0, 0, 0)
@@ -21,10 +22,10 @@ NAVY    = (0, 0, 128)
 TEAL    = (0, 128, 128)
 SILVER  = (192, 192, 192)
 
-# Game tile definitions
-TILES = {
-    "@": {"index": 0, "name": "Player", "color": CYAN},
-    "#": {"index": 1, "name": "Rock", "color": GRAY},
+# Game object registry
+obs = {
+    0: Object(0, 0, "@", "Player", CYAN, 0),
+    1: Object(0, 0, "#", "Rock", GRAY, 1),
 }
 
 class GameWorld:
@@ -41,23 +42,22 @@ class GameWorld:
         self.world_cols = 100
         self.world_rows = 100
 
-        self.grid = [[" " for _ in range(self.world_cols)] for _ in range(self.world_rows)]
+        self.grid = [[None for _ in range(self.world_cols)] for _ in range(self.world_rows)]
 
-        # Place 55 rocks
         rock_positions = set()
-        while len(rock_positions) < 55:
+        while len(rock_positions) < 155:
             rx = random.randint(0, self.world_cols - 1)
             ry = random.randint(0, self.world_rows - 1)
             if (rx, ry) not in rock_positions:
                 rock_positions.add((rx, ry))
-                self.grid[ry][rx] = "#"
+                self.grid[ry][rx] = obs[1].index  # Rock ID
 
         # Place player
         while True:
             self.player_x = random.randint(0, self.world_cols - 1)
             self.player_y = random.randint(0, self.world_rows - 1)
-            if self.grid[self.player_y][self.player_x] == " ":
-                self.grid[self.player_y][self.player_x] = "@"
+            if self.grid[self.player_y][self.player_x] is None:
+                self.grid[self.player_y][self.player_x] = obs[0].index  # Player ID
                 break
 
     def handle_input(self, key):
@@ -75,10 +75,10 @@ class GameWorld:
         new_y = self.player_y + dy
 
         if 0 <= new_x < self.world_cols and 0 <= new_y < self.world_rows:
-            if self.grid[new_y][new_x] == " ":
-                self.grid[self.player_y][self.player_x] = " "
+            if self.grid[new_y][new_x] is None:
+                self.grid[self.player_y][self.player_x] = None
                 self.player_x, self.player_y = new_x, new_y
-                self.grid[self.player_y][self.player_x] = "@"
+                self.grid[self.player_y][self.player_x] = obs[0].index
 
     def render(self, surface):
         cam_x = max(0, min(self.player_x - self.view_cols // 2, self.world_cols - self.view_cols))
@@ -91,19 +91,17 @@ class GameWorld:
             for x in range(self.view_cols):
                 world_x = cam_x + x
                 world_y = cam_y + y
-                char = self.grid[world_y][world_x]
-                if char in TILES:
-                    color = TILES[char]["color"]
-                    text = self.font.render(char, True, color)
+                tile_id = self.grid[world_y][world_x]
+                if tile_id in obs:
+                    tile = obs[tile_id]
+                    text = self.font.render(tile.char, True, tile.color)
                     screen_x = self.view_offset_x + x * self.tile_size
                     screen_y = self.view_offset_y + y * self.tile_size
                     surface.blit(text, (screen_x, screen_y))
 
-                    # Mouse hover detection
                     if screen_x <= mouse_x < screen_x + self.tile_size and screen_y <= mouse_y < screen_y + self.tile_size:
-                        mouse_name = TILES[char]["name"]
+                        mouse_name = tile.name
 
-        # Draw white outline around the game view
         outline_rect = pygame.Rect(
             self.view_offset_x - 1, 
             self.view_offset_y - 1, 
@@ -112,7 +110,6 @@ class GameWorld:
         )
         pygame.draw.rect(surface, WHITE, outline_rect, 1)
 
-        # Display hovered name
         if mouse_name:
             label = self.font.render(mouse_name, True, WHITE)
             surface.blit(label, (4, 4))
