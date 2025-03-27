@@ -21,6 +21,12 @@ NAVY    = (0, 0, 128)
 TEAL    = (0, 128, 128)
 SILVER  = (192, 192, 192)
 
+# Game tile definitions
+TILES = {
+    "@": {"index": 0, "name": "Player", "color": CYAN},
+    "#": {"index": 1, "name": "Rock", "color": GRAY},
+}
+
 class GameWorld:
     def __init__(self, width, height, tile_size, font, view_size=(256, 256), view_offset=(0, 0)):
         self.width = width
@@ -37,9 +43,9 @@ class GameWorld:
 
         self.grid = [[" " for _ in range(self.world_cols)] for _ in range(self.world_rows)]
 
-        # Place 5 rocks
+        # Place 55 rocks
         rock_positions = set()
-        while len(rock_positions) < 5:
+        while len(rock_positions) < 55:
             rx = random.randint(0, self.world_cols - 1)
             ry = random.randint(0, self.world_rows - 1)
             if (rx, ry) not in rock_positions:
@@ -78,23 +84,26 @@ class GameWorld:
         cam_x = max(0, min(self.player_x - self.view_cols // 2, self.world_cols - self.view_cols))
         cam_y = max(0, min(self.player_y - self.view_rows // 2, self.world_rows - self.view_rows))
 
+        mouse_name = ""
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
         for y in range(self.view_rows):
             for x in range(self.view_cols):
                 world_x = cam_x + x
                 world_y = cam_y + y
                 char = self.grid[world_y][world_x]
-                if char == "@":
-                    color = CYAN
-                elif char == "#":
-                    color = GRAY
-                else:
-                    continue
-                text = self.font.render(char, True, color)
-                screen_x = self.view_offset_x + x * self.tile_size
-                screen_y = self.view_offset_y + y * self.tile_size
-                surface.blit(text, (screen_x, screen_y))
+                if char in TILES:
+                    color = TILES[char]["color"]
+                    text = self.font.render(char, True, color)
+                    screen_x = self.view_offset_x + x * self.tile_size
+                    screen_y = self.view_offset_y + y * self.tile_size
+                    surface.blit(text, (screen_x, screen_y))
 
-        # Draw outline
+                    # Mouse hover detection
+                    if screen_x <= mouse_x < screen_x + self.tile_size and screen_y <= mouse_y < screen_y + self.tile_size:
+                        mouse_name = TILES[char]["name"]
+
+        # Draw white outline around the game view
         outline_rect = pygame.Rect(
             self.view_offset_x - 1, 
             self.view_offset_y - 1, 
@@ -102,3 +111,8 @@ class GameWorld:
             self.view_height + 2
         )
         pygame.draw.rect(surface, WHITE, outline_rect, 1)
+
+        # Display hovered name
+        if mouse_name:
+            label = self.font.render(mouse_name, True, WHITE)
+            surface.blit(label, (4, 4))
